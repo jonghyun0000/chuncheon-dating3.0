@@ -1,6 +1,5 @@
 // src/lib/supabaseClient.ts
 import { createClient } from '@supabase/supabase-js'
-import type { Database } from './types'
 
 const supabaseUrl  = import.meta.env.VITE_SUPABASE_URL  as string
 const supabaseAnon = import.meta.env.VITE_SUPABASE_ANON_KEY as string
@@ -11,12 +10,11 @@ if (!supabaseUrl || !supabaseAnon) {
   )
 }
 
-// ★ 절대 window 전역에 붙이지 않음
-// ★ 서비스롤 키는 이 파일에 존재하지 않음
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnon, {
+// <Database> 제네릭 제거 → never 타입 추론 오류 해결
+export const supabase = createClient(supabaseUrl, supabaseAnon, {
   auth: {
-    persistSession:    true,
-    autoRefreshToken:  true,
-    detectSessionInUrl:true,
+    persistSession:     true,
+    autoRefreshToken:   true,
+    detectSessionInUrl: true,
   },
 })
