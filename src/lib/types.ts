@@ -1,4 +1,6 @@
 // src/lib/types.ts
+// Database 타입 제거 (supabaseClient.ts 제네릭 제거로 불필요)
+// 도메인 타입만 유지
 
 export type GenderType       = 'male' | 'female'
 export type UniversityType   = '강원대학교' | '한림대학교' | '성심대학교'
@@ -21,7 +23,7 @@ export interface UserRow {
   mbti:                string | null
   is_smoker:           boolean
   contact_type:        ContactType
-  contact_value:       string       // ★ 매칭 성사 전 절대 노출 금지
+  contact_value:       string
   role:                string
   verification_status: VerifStatus
   is_active:           boolean
@@ -67,14 +69,4 @@ export interface RegisterFormData {
   agreed_terms:   boolean
   agreed_privacy: boolean
   agreed_adult:   boolean
-}
-
-export interface Database {
-  public: {
-    Tables: {
-      users:                  { Row: UserRow }
-      student_verifications:  { Row: StudentVerification }
-    }
-    Functions: Record<string, never>
-  }
 }
