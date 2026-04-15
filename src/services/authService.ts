@@ -53,10 +53,11 @@ export async function registerUser(form: RegisterFormData): Promise<{ error: str
 
   if (profileError) {
     console.error('[authService] 프로필 저장 실패:', profileError.message)
-    return { error: '회원 정보 저장에 실패했습니다. 잠시 후 다시 시도해주세요.' }
+    // Auth 계정 삭제는 서비스롤 키가 필요해 클라이언트에서 불가능
+    // 대신 로그아웃 처리해서 고아 세션 방지
+    await supabase.auth.signOut()
+    return { error: `회원 정보 저장에 실패했습니다: ${profileError.message}` }
   }
-  return { error: null }
-}
 
 export async function loginUser(username: string, password: string): Promise<{ error: string | null }> {
   if (!username.trim() || !password) return { error: '아이디와 비밀번호를 입력해주세요.' }
