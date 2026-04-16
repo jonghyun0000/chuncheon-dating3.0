@@ -1,10 +1,10 @@
 // src/router/index.tsx
 import { lazy, Suspense } from 'react'
-import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Outlet, Navigate } from 'react-router-dom'
 import Header from '../components/common/Header'
 import ProtectedRoute, { FullScreenSpinner } from '../components/common/ProtectedRoute'
-import AdminRoute from '../components/common/AdminRoute'
 import AdminLayout from '../components/common/AdminLayout'
+import { useAuth } from '../hooks/useAuth'
 
 const Home         = lazy(() => import('../pages/Home'))
 const Login        = lazy(() => import('../pages/Login'))
@@ -34,8 +34,24 @@ function RootLayout() {
   return (
     <>
       <Header />
-      <Suspense fallback={<FullScreenSpinner />}><Outlet /></Suspense>
+      <Suspense fallback={<FullScreenSpinner />}>
+        <Outlet />
+      </Suspense>
     </>
+  )
+}
+
+// AdminRoute를 AdminGuard로 교체 — Outlet이 Router context 안에서 렌더링되도록 수정
+// 기존: <AdminRoute><AdminLayout /></AdminRoute> → AdminLayout 안의 Outlet이 context 밖에서 실행되어 React #426 에러 발생
+function AdminGuard() {
+  const { user, loading } = useAuth()
+  if (loading) return <FullScreenSpinner />
+  if (!user) return <Navigate to="/login" replace />
+  if (user.role !== 'admin') return <Navigate to="/" replace />
+  return (
+    <Suspense fallback={<FullScreenSpinner />}>
+      <AdminLayout />
+    </Suspense>
   )
 }
 
@@ -44,34 +60,34 @@ const router = createBrowserRouter([
     path: '/',
     element: <RootLayout />,
     children: [
-      { index: true,  element: <Home /> },
-      { path: 'login',    element: <Login /> },
-      { path: 'register', element: <Register /> },
-      { path: 'terms',    element: <Terms /> },
-      { path: 'privacy',  element: <Privacy /> },
-      { path: 'my',       element: <ProtectedRoute><MyPage /></ProtectedRoute> },
-      { path: 'verify',   element: <ProtectedRoute><Verification /></ProtectedRoute> },
-      { path: 'teams',    element: <ProtectedRoute requireVerified><TeamList /></ProtectedRoute> },
-      { path: 'team/create', element: <ProtectedRoute requireVerified><TeamCreate /></ProtectedRoute> },
-      { path: 'team/:teamId', element: <ProtectedRoute requireVerified><TeamDetail /></ProtectedRoute> },
+      { index: true,                 element: <Home /> },
+      { path: 'login',               element: <Login /> },
+      { path: 'register',            element: <Register /> },
+      { path: 'terms',               element: <Terms /> },
+      { path: 'privacy',             element: <Privacy /> },
+      { path: 'my',                  element: <ProtectedRoute><MyPage /></ProtectedRoute> },
+      { path: 'verify',              element: <ProtectedRoute><Verification /></ProtectedRoute> },
+      { path: 'teams',               element: <ProtectedRoute requireVerified><TeamList /></ProtectedRoute> },
+      { path: 'team/create',         element: <ProtectedRoute requireVerified><TeamCreate /></ProtectedRoute> },
+      { path: 'team/:teamId',        element: <ProtectedRoute requireVerified><TeamDetail /></ProtectedRoute> },
       { path: 'team/:teamId/manage', element: <ProtectedRoute requireVerified><TeamManage /></ProtectedRoute> },
-      { path: 'match',    element: <ProtectedRoute requireVerified><MatchApply /></ProtectedRoute> },
-      { path: 'review/:matchId', element: <ProtectedRoute requireVerified><ReviewWrite /></ProtectedRoute> },
-      { path: 'report',   element: <ProtectedRoute><Report /></ProtectedRoute> },
+      { path: 'match',               element: <ProtectedRoute requireVerified><MatchApply /></ProtectedRoute> },
+      { path: 'review/:matchId',     element: <ProtectedRoute requireVerified><ReviewWrite /></ProtectedRoute> },
+      { path: 'report',              element: <ProtectedRoute><Report /></ProtectedRoute> },
     ],
   },
   {
     path: '/admin',
-    element: <AdminRoute><AdminLayout /></AdminRoute>,
+    element: <AdminGuard />,
     children: [
-      { index: true,               element: <AdminDashboard /> },
-      { path: 'users',             element: <AdminUsers /> },
-      { path: 'verifications',     element: <AdminVerifications /> },
-      { path: 'payments',          element: <AdminPayments /> },
-      { path: 'teams',             element: <AdminTeams /> },
-      { path: 'reports',           element: <AdminReports /> },
-      { path: 'reviews',           element: <AdminReviews /> },
-      { path: 'settings',          element: <AdminSettings /> },
+      { index: true,           element: <AdminDashboard /> },
+      { path: 'users',         element: <AdminUsers /> },
+      { path: 'verifications', element: <AdminVerifications /> },
+      { path: 'payments',      element: <AdminPayments /> },
+      { path: 'teams',         element: <AdminTeams /> },
+      { path: 'reports',       element: <AdminReports /> },
+      { path: 'reviews',       element: <AdminReviews /> },
+      { path: 'settings',      element: <AdminSettings /> },
     ],
   },
   {
