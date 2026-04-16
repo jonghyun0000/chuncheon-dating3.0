@@ -75,7 +75,7 @@ export async function fetchVerifications(status?: string): Promise<{ data: Verif
 }
 
 export async function getVerifImageUrl(imagePath: string): Promise<{ url: string | null; error: string | null }> {
-  const { data, error } = await supabase.storage.from('student-id').createSignedUrl(imagePath, 180)
+  const { data, error } = await supabase.storage.from('student-id').createSignedUrl(imagePath, 3600)
   if (error || !data?.signedUrl) return { url: null, error: '이미지를 불러오지 못했습니다.' }
   return { url: data.signedUrl, error: null }
 }
